@@ -17,14 +17,6 @@ __all__ = [
     'shufflenet_v2_x1_5', 'shufflenet_v2_x2_0'
 ]
 
-model_urls = {
-    'shufflenetv2_x0.5': 'https://download.pytorch.org/models/shufflenetv2_x0.5-f707e7126e.pth',
-    'shufflenetv2_x1.0': 'https://download.pytorch.org/models/shufflenetv2_x1-5666bf0f80.pth',
-    'shufflenetv2_x1.5': None,
-    'shufflenetv2_x2.0': None,
-}
-
-
 def channel_shuffle(x, groups):
     batchsize, num_channels, height, width = x.shape
     channels_per_group = num_channels // groups
@@ -117,8 +109,16 @@ class ShuffleNetV2(fluid.dygraph.Layer):
             Conv2D(input_channels, output_channels, 1, 1, 0),
             BatchNorm(output_channels,act='relu')
         )
+        import math
+        stdv = 1.0 / math.sqrt(512 * 1.0)
 
-        self.fc = nn.Linear(output_channels, num_classes)
+        import math
+        stdv = 1.0 / math.sqrt(output_channels * 1.0)
+        self.fc =  Linear(output_channels,
+                   num_classes,
+                   act='softmax',
+                   param_attr=fluid.param_attr.ParamAttr(
+                   initializer=fluid.initializer.Uniform(-stdv, stdv)))
 
     def forward(self, x):
         x = self.conv1(x)
@@ -192,12 +192,12 @@ def shufflenet_v2_x2_0(pretrained=False, progress=True, **kwargs):
     return _shufflenetv2('shufflenetv2_x2.0', pretrained, progress,
                          [4, 8, 4], [24, 244, 488, 976, 2048], **kwargs)
 
-import numpy as np
-from paddle.fluid.dygraph import to_variable
-with fluid.dygraph.guard():
-    model = shufflenet_v2_x0_5()
-    image = np.ones((1,3,224,224)).astype(np.float32)
-    image = to_variable(image)
-    out = model(image)
-    print(out.shape)
-    print(out.numpy()[0][-1])
+# import numpy as np
+# from paddle.fluid.dygraph import to_variable
+# with fluid.dygraph.guard():
+#     model = shufflenet_v2_x0_5()
+#     image = np.ones((1,3,224,224)).astype(np.float32)
+#     image = to_variable(image)
+#     out = model(image)
+#     print(out.shape)
+#     print(out.numpy()[0][-1])

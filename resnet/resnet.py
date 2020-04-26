@@ -19,15 +19,6 @@ __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
 
 
-model_urls = {
-    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
-    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
-    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
-    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
-    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
-}
-
-
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
     return Conv2D(in_planes, out_planes, filter_size=3, stride=stride,
@@ -204,13 +195,13 @@ def resnet152(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     return model
 
-import numpy as np
-from paddle.fluid.dygraph import to_variable
-with fluid.dygraph.guard():
-    model = resnet152()
-    image = np.ones((1,3,224,224)).astype(np.float32)
-    image = to_variable(image)
-    out = model(image)
-    print(out.shape)
-    print(out.numpy()[0][-1])
+# import numpy as np
+# from paddle.fluid.dygraph import to_variable
+# with fluid.dygraph.guard():
+#     model = resnet152()
+#     image = np.ones((1,3,224,224)).astype(np.float32)
+#     image = to_variable(image)
+#     out = model(image)
+#     print(out.shape)
+#     print(out.numpy()[0][-1])
 

@@ -7,7 +7,7 @@
 @time: 2020/4/25 16:39
 
 """
-from vgg_pp import *
+from vgg import *
 import paddle
 import paddle.fluid as fluid
 from paddle.fluid.dygraph import to_variable

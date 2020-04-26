@@ -10,24 +10,26 @@
 import paddle
 import paddle.fluid as fluid
 from paddle.fluid.dygraph.nn import Conv2D, Pool2D, BatchNorm, Linear
+import pdb 
 
 class VGG(fluid.dygraph.Layer):
     def __init__(self, features, num_classes=1000):
         super(VGG, self).__init__()
         self.features = features
-        self.avgpool = Pool2D(pool_size=7, pool_type='avg', global_pooling=True)
+        self.avgpool = Pool2D(pool_size=7, pool_stride=1, pool_type='avg')
         import math
         stdv = 1.0 / math.sqrt(2048 * 1.0)
-        self.classifier =  Linear(512*1*1,
+        self.classifier =  Linear(512,
                    num_classes,
                    act='softmax',
                    param_attr=fluid.param_attr.ParamAttr(
                    initializer=fluid.initializer.Uniform(-stdv, stdv)))
 
     def forward(self, x):
+        # pdb.set_trace()
         x = self.features(x)
         x = self.avgpool(x)
-        x = fluid.layers.reshape(x, shape=[-1, 512*1*1])
+        x = fluid.layers.reshape(x, shape=[x.shape[0], -1])
         x = self.classifier(x)
         return x
 
@@ -41,6 +43,7 @@ cfgs = {
 def make_layers(cfg, batch_norm=False):
     layers = []
     in_channels = 3
+    
     for v in cfg:
         if v == 'M':
             layers += [Pool2D(pool_size=2, pool_stride=2)]
@@ -48,11 +51,13 @@ def make_layers(cfg, batch_norm=False):
             if batch_norm:
                 layers += [Conv2D(in_channels, v, filter_size=3, padding=1), BatchNorm(v,act='relu')]
             else:
-                layers += [Conv2D(in_channels, v, filter_size=3, padding=1,act='relu')]
+                layers += [Conv2D(in_channels, v, filter_size=3, padding=1, act='relu')]
             in_channels = v
+            
     return fluid.dygraph.Sequential(*layers)
 
 def _vgg(cfg, batch_norm, **kwargs):
+    
     model = VGG(make_layers(cfgs[cfg], batch_norm=batch_norm), **kwargs)
     return model
 
